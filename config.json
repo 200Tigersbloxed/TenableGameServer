@@ -1,0 +1,9 @@
+{
+  "serverPort": 3000,
+  "serverName": "The Cool Server",
+  "whitelist":  true,
+  "users": {
+    "admin1": "200Tigersbloxed",
+    "admin2":  "dev"
+  }
+}
