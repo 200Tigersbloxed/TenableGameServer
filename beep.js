@@ -114,5 +114,14 @@ io.on('connection', (socket) => {
 
     socket.on('getServerInfo', () => {
         socket.emit('sendServerInfo', { "serverName": config.serverName, "latestMessage": latestServerMessage })
-    })
+	})
+	
+	// chat controller
+	socket.on('sendchatmessage', (messagedata) => {
+		// when a client sends a message
+		var sender = messagedata.username
+		var message = messagedata.msg
+
+		io.emit('getchatmessage', { "sender": sender, "msg": message })
+	})
 })
