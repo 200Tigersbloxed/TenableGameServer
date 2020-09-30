@@ -73,9 +73,11 @@ io.on('connection', (socket) => {
                     else {
 						// check if they're whitelisted
 						var usersinconfig = config.users
-						var approved = false;
+						var approved = false
+			    			var ldusn = logindata.username
+						var uicplr = usersinconfig[plr]
 						for(plr in usersinconfig){
-							if(usersinconfig[plr] == logindata.username){
+							if(uicplr.toLowerCase() == ldusn.toLowerCase()){
 								// they're good
 								approved = true;
 							}
