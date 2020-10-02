@@ -20,6 +20,28 @@ var io = require('socket.io')({
 	transports: ['websocket'],
 });
 
+function getPlayerNameFromSocket(socket){
+	for(x in playerswithsocket){
+		if(playerswithsocket[x]["socket"] == socket){
+			return playerswithsocket[x]["username"]
+		}
+	}
+	return undefined
+}
+
+function getSocketFromPlayerName(username){
+	for(x in playerswithsocket){
+		if(playerswithsocket[x]["username"] == username){
+			return playerswithsocket[x]["socket"]
+		}
+	}
+	return undefined
+}
+
+function PlayerJoinedSetup(socket){
+	socket.emit("PJSplayers", {"players": players})
+}
+
 console.log("Server Starting in 5 Seconds...")
 
 setTimeout(function () {
@@ -69,15 +91,15 @@ io.on('connection', (socket) => {
 							"username": logindata.username,
 							"socket": socket
 						}
+						PlayerJoinedSetup(socket)
                     }
                     else {
 						// check if they're whitelisted
 						var usersinconfig = config.users
 						var approved = false
-			    			var ldusn = logindata.username
-						var uicplr = usersinconfig[plr]
+			    		var ldusn = logindata.username
 						for(plr in usersinconfig){
-							if(uicplr.toLowerCase() == ldusn.toLowerCase()){
+							if(usersinconfig[plr].toLowerCase() == ldusn.toLowerCase()){
 								// they're good
 								approved = true;
 							}
@@ -90,6 +112,7 @@ io.on('connection', (socket) => {
 								"username": logindata.username,
 								"socket": socket
 							}
+							PlayerJoinedSetup(socket);
 						}
 						else{
 							console.log("Player " + logindata.username + " attempted to join! (They're not WhiteListed)")
@@ -117,6 +140,15 @@ io.on('connection', (socket) => {
     socket.on('getServerInfo', () => {
         socket.emit('sendServerInfo', { "serverName": config.serverName, "latestMessage": latestServerMessage })
 	})
+
+	// moderation controllers
+	socket.on('warn', (warndata) => {
+		var target = warndata.target
+		var reason = warndata.reason
+		var targetsocket = getSocketFromPlayerName(target)
+
+		targetsocket.emit('warn', { "reason": reason })
+	})
 	
 	// chat controller
 	socket.on('sendchatmessage', (messagedata) => {
@@ -124,6 +156,8 @@ io.on('connection', (socket) => {
 		var sender = messagedata.username
 		var message = messagedata.msg
 
+		console.log(sender + "> " + message);
+		
 		io.emit('getchatmessage', { "sender": sender, "msg": message })
 	})
 })
