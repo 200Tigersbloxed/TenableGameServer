@@ -69,6 +69,7 @@ io.on('connection', (socket) => {
 			}
 		}
 		console.log(plrwholeft + " Left the Server")
+		io.emit('playerleft', {"target": plrwholeft})
 		// now remove the player that just left from the players table and playerswithsocket array
 		const index = players.indexOf(plrwholeft)
 		players.splice(index, 1)
@@ -147,7 +148,22 @@ io.on('connection', (socket) => {
 		var reason = warndata.reason
 		var targetsocket = getSocketFromPlayerName(target)
 
-		targetsocket.emit('warn', { "reason": reason })
+		var usersinconfig = config.admins
+		var isadmin = false
+		var ldusn = warndata.username
+		for(plr in usersinconfig){
+			if(usersinconfig[plr].toLowerCase() == ldusn.toLowerCase()){
+				// they're good
+				isadmin = true;
+			}
+		}
+
+		if(isadmin){
+			targetsocket.emit('warn', { "reason": reason })
+		}
+		else{
+			socket.emit('failtowarn', { "reason": "Failed to Send Warning: You're not an Admin!" })
+		}
 	})
 	
 	// chat controller
@@ -157,7 +173,6 @@ io.on('connection', (socket) => {
 		var message = messagedata.msg
 
 		console.log(sender + "> " + message);
-		
 		io.emit('getchatmessage', { "sender": sender, "msg": message })
 	})
 })
