@@ -80,6 +80,10 @@ io.on('connection', (socket) => {
 			}
 		}
 	})
+
+	socket.on('connectiontest', () => {
+		socket.emit('connectiontest', {"result": true})
+	})
 	
 	socket.on('login', (logindata) => {
 		setTimeout(function(){
@@ -163,6 +167,32 @@ io.on('connection', (socket) => {
 		}
 		else{
 			socket.emit('failtowarn', { "reason": "Failed to Send Warning: You're not an Admin!" })
+		}
+	})
+
+	socket.on('kick', (warndata) => {
+		var target = warndata.target
+		var reason = warndata.reason
+		var targetsocket = getSocketFromPlayerName(target)
+
+		var usersinconfig = config.admins
+		var isadmin = false
+		var ldusn = warndata.username
+		for(plr in usersinconfig){
+			if(usersinconfig[plr].toLowerCase() == ldusn.toLowerCase()){
+				// they're good
+				isadmin = true;
+			}
+		}
+
+		if(isadmin){
+			targetsocket.emit('kick', { "reason": reason })
+			setTimeout(function(){
+				targetsocket.disconnect();
+			}, 1000)
+		}
+		else{
+			socket.emit('failtokick', { "reason": "Failed to Kick User: You're not an Admin!" })
 		}
 	})
 	
