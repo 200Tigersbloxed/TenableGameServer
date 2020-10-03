@@ -45,40 +45,29 @@ function PlayerJoinedSetup(socket){
 console.log("Server Starting in 5 Seconds...")
 
 setTimeout(function () {
-    io.attach(config.serverPort);
     console.log("TenableGameServer Name: " + config.serverName)
-    console.log("TenableGameServer Port: " + config.serverPort)
-    console.log("TenableGameServer is On!")
+	console.log("TenableGameServer Port: " + config.serverPort)
+	io.attach(config.serverPort);
+	console.log("TenableGameServer is On!")
+	maxplayers = config.maxplayers
+	minplayers = config.minplayers
 }, 5000)
 
 io.on('connection', (socket) => {
-	console.log('Connection made');
-	
 	socket.on('disconnect', () => {
-		console.log("Player Left")
 		// Lets see whos still here
 		previousplayers = players
 		io.emit('getplayers')
-		// everything else happens in return players
-		socket.disconnect();
 		// find out who left
-		var plrwholeft
-		for(x in playerswithsocket){
-			if(playerswithsocket[x]["socket"] == socket){
-				plrwholeft = playerswithsocket[x]["username"]
-			}
-		}
+		var plrwholeft = getPlayerNameFromSocket(socket)
 		console.log(plrwholeft + " Left the Server")
-		io.emit('playerleft', {"target": plrwholeft})
+		socket.broadcast.emit("playerleft", {"target": plrwholeft})
 		// now remove the player that just left from the players table and playerswithsocket array
 		const index = players.indexOf(plrwholeft)
 		players.splice(index, 1)
-		for(x in playerswithsocket){
-			if(playerswithsocket[x]["username"] == plrwholeft){
-				var plrusername = playerswithsocket[x]["username"]
-				playerswithsocket = playerswithsocket.filter(plrusername => playerswithsocket[x]["username"] != plrusername)
-			}
-		}
+		delete playerswithsocket[plrwholeft]
+		// everything else happens in return players
+		socket.disconnect();
 	})
 
 	socket.on('connectiontest', () => {
@@ -90,12 +79,13 @@ io.on('connection', (socket) => {
 			if(players.length <= maxplayers){
 				if(!inRound){
                     if (!config.whitelist) {
-                        console.log("Player " + logindata.username + " has joined the server!")
+                        console.log(logindata.username + " has joined the server!")
 						players.push(logindata.username)
 						playerswithsocket[logindata.username] = {
 							"username": logindata.username,
 							"socket": socket
 						}
+						socket.broadcast.emit("playerjoined", {"player": logindata.username})
 						PlayerJoinedSetup(socket)
                     }
                     else {
@@ -111,30 +101,29 @@ io.on('connection', (socket) => {
 						}
 						// now we check the var
 						if(approved){
-							console.log("Player " + logindata.username + " has joined the server!")
+							console.log(logindata.username + " has joined the server!")
 							players.push(logindata.username)
 							playerswithsocket[logindata.username] = {
 								"username": logindata.username,
 								"socket": socket
 							}
+							socket.broadcast.emit("playerjoined", {"player": logindata.username})
 							PlayerJoinedSetup(socket);
 						}
 						else{
-							console.log("Player " + logindata.username + " attempted to join! (They're not WhiteListed)")
+							console.log(logindata.username + " attempted to join! (They're not WhiteListed)")
 							socket.emit("kick", {"reason": "Not Whitelisted"})
 							socket.disconnect()
 						}
                     }
 				}
 				else{
-					console.log("round in progress")
 					// round is in progress deny player
                     socket.emit("kick", { "reason": "Round In Progress" })
 					socket.disconnect()
 				}
 			}
 			else{
-				console.log("server full")
 				// server is full deny player
                 socket.emit("kick", {"reason": "Server Full"})
 				socket.disconnect()
