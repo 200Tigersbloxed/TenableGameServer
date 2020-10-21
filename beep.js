@@ -15,7 +15,7 @@ var hideGlobalModerationReasons = false;
 var players = []
 var maxplayers = 45
 var minplayers = 3
-var latestServerMessage = "test"
+var latestServerMessage = "If you see this message, then there's probably something wrong"
 var inRound = false
 var startingRound = false
 var host
@@ -57,8 +57,14 @@ function PlayerJoinedSetup(socket){
 }
 
 function sendServerMessage(message){
-	latestServerMessage = message;
-	io.emit("serverMessage", { "message": latestServerMessage})
+	if(latestServerMessage != message){
+		latestServerMessage = message;
+		io.emit("serverMessage", { "message": latestServerMessage})
+	}
+}
+
+function sendMessageBoxMessage(message){
+	io.emit('messageboxmessage', {"message": message})
 }
 
 function kickPlayer(targetSocket, reason){
@@ -123,6 +129,7 @@ setTimeout(function () {
 	if(!kickPlayersOnDetectedCheat){
 		console.log("WARN: kickPlayersOnDetectedCheat is disabled. This is recommended as it'll remove players who are messing with the server by sending custom socket messages. Consider enabling this in the config to prevent this.")
 	}
+	sendServerMessage("Waiting for players...")
 }, 5000)
 
 // game loop check
@@ -164,6 +171,7 @@ var gameLoopInterval = setInterval(function(){
 					currentPlayer = selectedPlayer
 					var cpSocket = getSocketFromPlayerName(currentPlayer)
 					cpSocket.emit('answerQuestion', {"question": hostQuestion})
+					sendMessageBoxMessage(selectedPlayer + " is up to play!")
 				}
 			}
 		}
@@ -207,6 +215,7 @@ function EndRound(){
 	playerIsAnswering = false
 	playerAnswer = undefined
 	playerswhovehadturn = []
+	io.emit("endround")
 	sendServerMessage("Timeout for 30 Seconds")
 	setTimeout(function(){
 		BeginStartRound()
@@ -218,21 +227,32 @@ io.on('connection', (socket) => {
 		// Lets see whos still here
 		previousplayers = players
 		io.emit('getplayers')
+		var failedToFindPlayer = false
 		// find out who left
-		var plrwholeft = getPlayerNameFromSocket(socket)
-		// check if they were in a round
-		if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
-			// yep so lets fix stuff
-			EndPlayerTurn(plrwholeft)
-			delete playerswhovehadturn[plrwholeft]
-			// thats it
+		try{
+			var plrwholeft = getPlayerNameFromSocket(socket)
 		}
-		console.log(plrwholeft + " Left the Server")
-		socket.broadcast.emit("playerleft", {"target": plrwholeft})
-		// now remove the player that just left from the players table and playerswithsocket array
-		const index = players.indexOf(plrwholeft)
-		players.splice(index, 1)
-		delete playerswithsocket[plrwholeft]
+		catch{
+			failedToFindPlayer = true
+		}
+		// make sure there was a player before continuing
+		if(!failedToFindPlayer){
+			// check if they were in a round
+			if(inRound){
+				if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
+					// yep so lets fix stuff
+					EndPlayerTurn(plrwholeft)
+					delete playerswhovehadturn[plrwholeft]
+					// thats it
+				}
+			}
+			console.log(plrwholeft + " Left the Server")
+			socket.broadcast.emit("playerleft", {"target": plrwholeft})
+			// now remove the player that just left from the players table and playerswithsocket array
+			const index = players.indexOf(plrwholeft)
+			players.splice(index, 1)
+			delete playerswithsocket[plrwholeft]
+		}
 		// everything else happens in return players
 		socket.disconnect();
 	})
@@ -245,7 +265,7 @@ io.on('connection', (socket) => {
 		setTimeout(function(){
 			if(players.length <= maxplayers){
 				if(!inRound){
-					if(!CheckForDuplicatePlayer){
+					if(!CheckForDuplicatePlayer(logindata.username)){
 						if (!config.whitelist) {
 							console.log(logindata.username + " has joined the server!")
 							players.push(logindata.username)
@@ -254,6 +274,7 @@ io.on('connection', (socket) => {
 								"socket": socket
 							}
 							socket.broadcast.emit("playerjoined", {"player": logindata.username})
+							sendServerMessage(logindata.username + " has joined the server!")
 							PlayerJoinedSetup(socket)
 						}
 						else {
@@ -276,6 +297,7 @@ io.on('connection', (socket) => {
 									"socket": socket
 								}
 								socket.broadcast.emit("playerjoined", {"player": logindata.username})
+								sendServerMessage(logindata.username + " has joined the server!")
 								PlayerJoinedSetup(socket);
 							}
 							else{
