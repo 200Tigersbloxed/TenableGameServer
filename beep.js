@@ -151,8 +151,12 @@ var gameLoopInterval = setInterval(function(){
 			}
 			else{
 				// we need a new player
+				playerIsAnswering = true
+				playerAnswer = undefined
 				var selectedPlayer = PickNewPlayer()
 				currentPlayer = selectedPlayer
+				var cpSocket = getSocketFromPlayerName(currentPlayer)
+				cpSocket.emit('answerQuestion', {"question": hostQuestion})
 			}
 		}
 	}
