@@ -2,8 +2,15 @@
   "serverPort": 3000,
   "serverName": "The Cool Server",
   "whitelist":  true,
+  "minplayers": 3,
+  "maxplayers": 45,
+  "kickPlayersOnDetectedCheat": true,
+  "hideGlobalModerationReasons": false,
   "users": {
-    "admin1": "200Tigersbloxed",
-    "admin2":  "dev"
+    "whitelist1": "200Tigersbloxed",
+    "whitelist2":  "dev"
+  },
+  "admins": {
+    "admin1":  "dev"
   }
 }
