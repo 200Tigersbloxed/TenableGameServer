@@ -84,6 +84,9 @@ function CheckForDuplicatePlayer(playername){
 }
 
 function PickNewPlayer(){
+	if(playerswhovehadturn.length == players.length){
+		return false
+	}
 	var theplayerlisttopickfrom = players
 	for(var i = 0; i < playerswhovehadturn.length; i++){
 		delete theplayerlisttopickfrom[i]
@@ -154,9 +157,14 @@ var gameLoopInterval = setInterval(function(){
 				playerIsAnswering = true
 				playerAnswer = undefined
 				var selectedPlayer = PickNewPlayer()
-				currentPlayer = selectedPlayer
-				var cpSocket = getSocketFromPlayerName(currentPlayer)
-				cpSocket.emit('answerQuestion', {"question": hostQuestion})
+				if(selectedPlayer == false){
+					EndRound()
+				}
+				else{
+					currentPlayer = selectedPlayer
+					var cpSocket = getSocketFromPlayerName(currentPlayer)
+					cpSocket.emit('answerQuestion', {"question": hostQuestion})
+				}
 			}
 		}
 	}
