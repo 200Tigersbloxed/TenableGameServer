@@ -11,6 +11,7 @@
     "whitelist2":  "dev"
   },
   "admins": {
-    "admin1":  "dev"
+    "admin1":  "dev",
+    "admin2": "200Tigersbloxed"
   }
 }
