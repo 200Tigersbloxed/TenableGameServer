@@ -68,9 +68,9 @@ function sendMessageBoxMessage(message){
 }
 
 function kickPlayer(targetSocket, reason){
-	targetsocket.emit('kick', { "reason": reason })
+	targetSocket.emit('kick', { "reason": reason })
 	setTimeout(function(){
-		targetsocket.disconnect();
+		targetSocket.disconnect();
 	}, 1000)
 	if(hideGlobalModerationReasons){
 		sendServerMessage(getPlayerNameFromSocket(targetSocket) + " was kicked from the server.")
@@ -146,6 +146,11 @@ var gameLoopInterval = setInterval(function(){
 	}
 	else{
 		// a round is happening, check variables
+		// check to make sure players are always above or equal to minimum
+		if(players.length < minplayers){
+			// not enough players, end it
+			EndRound()
+		}
 		if(hostQuestion == undefined){
 			// no host question yet, wait please
 		}
@@ -164,7 +169,7 @@ var gameLoopInterval = setInterval(function(){
 				playerIsAnswering = true
 				playerAnswer = undefined
 				var selectedPlayer = PickNewPlayer()
-				if(selectedPlayer == false){
+				if(selectedPlayer == false || selectedPlayer == undefined){
 					EndRound()
 				}
 				else{
@@ -190,8 +195,7 @@ function BeginStartRound(){
 function StartRound(){
 	if(players.length >= minplayers){
 		// pick a host
-		var hostindex = Math.floor(Math.random * players.length)
-		host = players[hostindex]
+		host = players[Math.floor(Math.random() * players.length)]
 		hostSocket = getSocketFromPlayerName(host)
 		io.emit("startround", {"host": host})
 		inRound = true
@@ -238,7 +242,7 @@ io.on('connection', (socket) => {
 		// make sure there was a player before continuing
 		if(!failedToFindPlayer){
 			// check if they were in a round
-			if(inRound){
+			if(inRound && currentPlayer != undefined){
 				if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
 					// yep so lets fix stuff
 					EndPlayerTurn(plrwholeft)
@@ -401,7 +405,7 @@ io.on('connection', (socket) => {
 			if(userSubmitted.toLowerCase() == host.toLowerCase()){
 				// okay the host sent this
 				// make sure the question hasn't already been submitted
-				if(hostQuestion != undefined){
+				if(hostQuestion == undefined){
 					// okay there's no question
 					hostQuestion = answer
 					io.emit('hostQuestion', {"question": hostQuestion})
