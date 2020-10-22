@@ -18,6 +18,7 @@ var minplayers = 3
 var latestServerMessage = "If you see this message, then there's probably something wrong"
 var inRound = false
 var startingRound = false
+var startingEndRound = false
 var host
 var hostSocket
 var hostQuestion = undefined
@@ -101,7 +102,7 @@ function PickNewPlayer(){
 	var randomElement = Math.floor(Math.random() * theplayerlisttopickfrom.length)
 	
 	playerswhovehadturn.push(players[randomElement])
-	return players[randomElement]
+	return theplayerlisttopickfrom[randomElement]
 }
 
 function EndPlayerTurn(playername){
@@ -140,7 +141,9 @@ var gameLoopInterval = setInterval(function(){
 			// there's enough players to start the round
 			// check to see if we've already started the round
 			if(!startingRound){
-				BeginStartRound()
+				if(!startingEndRound){
+					BeginStartRound()
+				}
 			}
 		}
 	}
@@ -174,9 +177,9 @@ var gameLoopInterval = setInterval(function(){
 				}
 				else{
 					currentPlayer = selectedPlayer
-					var cpSocket = getSocketFromPlayerName(currentPlayer)
-					cpSocket.emit('answerQuestion', {"question": hostQuestion})
 					sendMessageBoxMessage(selectedPlayer + " is up to play!")
+					var cpSocket = getSocketFromPlayerName(selectedPlayer)
+					cpSocket.emit('answerQuestion', {"question": hostQuestion})
 				}
 			}
 		}
@@ -211,6 +214,7 @@ function StartRound(){
 function EndRound(){
 	inRound = false
 	startingRound = false
+	startingEndRound = true
 	host = undefined
 	hostSocket = undefined
 	hostQuestion = undefined
