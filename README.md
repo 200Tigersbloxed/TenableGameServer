@@ -29,7 +29,7 @@ run `wget "[the .js file url]"`
 Copy the link address for the config file
 run `wget "[the config file url]"`
 
-### Step 4
+### Step 2
 Installing Tenable Game Dependencies
 
 Windows: Run any batch file named Dependency[number].bat
@@ -38,7 +38,7 @@ Linux: Run these command(s) in the same directory as the .js file.
 `npm install fs`
 `npm install socket.io`
 
-### Step 5
+### Step 3
 Start the server
 
 Windows: Run start.bat
