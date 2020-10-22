@@ -1,7 +1,7 @@
 {
   "serverPort": 3000,
   "serverName": "The Cool Server",
-  "whitelist":  true,
+  "whitelist":  false,
   "minplayers": 3,
   "maxplayers": 45,
   "kickPlayersOnDetectedCheat": true,
