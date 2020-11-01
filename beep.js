@@ -27,6 +27,7 @@ var currentPlayer = undefined
 var playerIsAnswering = false
 var playerAnswer
 var playerswhovehadturn = []
+var answersCorrect = 0
 
 // socket stuff
 var playerswithsocket = []
@@ -60,12 +61,16 @@ function PlayerJoinedSetup(socket){
 function sendServerMessage(message){
 	if(latestServerMessage != message){
 		latestServerMessage = message;
-		io.emit("serverMessage", { "message": latestServerMessage})
+		setTimeout(function(){
+			io.emit("serverMessage", { "message": latestServerMessage})
+		}, 500)
 	}
 }
 
 function sendMessageBoxMessage(message){
-	io.emit('messageboxmessage', {"message": message})
+	setTimeout(function(){
+		io.emit('messageboxmessage', {"message": message})
+	}, 500)
 }
 
 function kickPlayer(targetSocket, reason){
@@ -95,14 +100,20 @@ function PickNewPlayer(){
 		return false
 	}
 	var theplayerlisttopickfrom = players
+	for(var i = 0; i < theplayerlisttopickfrom.length; i++){
+		if(theplayerlisttopickfrom[i] == host){
+			delete theplayerlisttopickfrom[i]
+		}
+	}
 	for(var i = 0; i < playerswhovehadturn.length; i++){
 		delete theplayerlisttopickfrom[i]
 	}
-	delete theplayerlisttopickfrom[host]
-	var randomElement = Math.floor(Math.random() * theplayerlisttopickfrom.length)
-	
-	playerswhovehadturn.push(players[randomElement])
-	return theplayerlisttopickfrom[randomElement]
+	var randomElement = theplayerlisttopickfrom[Math.floor(Math.random() * theplayerlisttopickfrom.length)]
+
+	console.log(randomElement)
+	console.log(playerswhovehadturn)
+	console.log(theplayerlisttopickfrom)
+	return randomElement
 }
 
 function EndPlayerTurn(playername){
@@ -197,6 +208,7 @@ function BeginStartRound(){
 
 function StartRound(){
 	if(players.length >= minplayers){
+		startingEndRound = false
 		// pick a host
 		host = players[Math.floor(Math.random() * players.length)]
 		hostSocket = getSocketFromPlayerName(host)
@@ -223,6 +235,7 @@ function EndRound(){
 	playerIsAnswering = false
 	playerAnswer = undefined
 	playerswhovehadturn = []
+	answersCorrect = 0
 	io.emit("endround")
 	sendServerMessage("Timeout for 30 Seconds")
 	setTimeout(function(){
@@ -423,6 +436,13 @@ io.on('connection', (socket) => {
 					else{
 						// the answer is right, good job
 						io.emit('answerSubmitted', {"isRight": "yes", "answer": answer})
+						answersCorrect++
+						if(answersCorrect == 10){
+							EndPlayerTurn(currentPlayer)
+							setTimeout(function(){
+								EndRound()
+							}, 5000)
+						}
 					}
 				}
 			}
