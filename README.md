@@ -33,6 +33,7 @@ Windows: Run any batch file named Dependency[number].bat
 Linux: Run these command(s) in the same directory as the .js file.
 `npm install fs`
 `npm install socket.io`
+`npm install timers`
 
 ### Step 3
 Start the server
