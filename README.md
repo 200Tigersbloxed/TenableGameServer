@@ -23,11 +23,7 @@ Windows:
 Download the Windows.zip from the latest release. Extract the ZIP into any directory.
 
 Linux:
-Create a new directory to store your files in
-Copy the link address for the .js file
-run `wget "[the .js file url]"`
-Copy the link address for the config file
-run `wget "[the config file url]"`
+Download the Linux.zip from the latest release. Extract the ZIP into any directory.
 
 ### Step 2
 Installing Tenable Game Dependencies
