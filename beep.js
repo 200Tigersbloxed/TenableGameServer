@@ -108,11 +108,17 @@ function PickNewPlayer(){
 	for(var i = 0; i < playerswhovehadturn.length; i++){
 		delete theplayerlisttopickfrom[i]
 	}
-	var randomElement = theplayerlisttopickfrom[Math.floor(Math.random() * theplayerlisttopickfrom.length)]
 
-	console.log(randomElement)
-	console.log(playerswhovehadturn)
-	console.log(theplayerlisttopickfrom)
+	// filter it for empty things
+	var filtered = theplayerlisttopickfrom.filter(function (el) {
+		return el != null
+	})
+
+	// check if the array is empty
+	if(filtered.length <= 0){
+		return undefined
+	}
+	var randomElement = filtered[Math.floor(Math.random() * filtered.length)]
 	return randomElement
 }
 
@@ -175,7 +181,6 @@ var gameLoopInterval = setInterval(function(){
 				}
 				else{
 					io.emit("checkAnswer", {"answer": playerAnswer})
-					playerIsAnswering = false
 				}
 			}
 			else{
@@ -216,6 +221,7 @@ function StartRound(){
 		inRound = true
 		// yes this should be the same as the else down there
 		startingRound = false
+		playerIsAnswering = true
 	}
 	else{
 		// Can't start round, someone left
@@ -419,6 +425,7 @@ io.on('connection', (socket) => {
 		if(isHostAnswer){
 			// checks time!
 			// check if player is the host
+			console.log(userSubmitted.toLowerCase() + " <HFS|HFgpnfs> " + host.toLowerCase())
 			if(userSubmitted.toLowerCase() == host.toLowerCase()){
 				// okay the host sent this
 				// make sure the question hasn't already been submitted
@@ -426,23 +433,31 @@ io.on('connection', (socket) => {
 					// okay there's no question
 					hostQuestion = answer
 					io.emit('hostQuestion', {"question": hostQuestion})
+					playerIsAnswering = false
 				}
 				else{
 					// it's not a question its a response answer
 					if(answer == "wrong"){
 						// the answer is wrong LMAOOOO YOU SUCK AT TENABLE
 						io.emit('answerSubmitted', {"isRight": "no", "answer": answer})
+						setTimeout(function() {
+							EndPlayerTurn()
+							playerIsAnswering = false
+						}, 10000);
 					}
 					else{
 						// the answer is right, good job
 						io.emit('answerSubmitted', {"isRight": "yes", "answer": answer})
 						answersCorrect++
-						if(answersCorrect == 10){
-							EndPlayerTurn(currentPlayer)
-							setTimeout(function(){
+						setTimeout(function(){
+							if(answersCorrect >= 10){
 								EndRound()
-							}, 5000)
-						}
+							}
+							else{
+								EndPlayerTurn()
+								playerIsAnswering = false
+							}
+						}, 10000)
 					}
 				}
 			}
