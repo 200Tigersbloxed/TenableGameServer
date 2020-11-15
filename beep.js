@@ -115,7 +115,7 @@ function PickNewPlayer(){
 	})
 
 	// check if the array is empty
-	if(filtered.length <= 0){
+	if(filtered.length == 0){
 		return undefined
 	}
 	var randomElement = filtered[Math.floor(Math.random() * filtered.length)]
@@ -175,15 +175,7 @@ var gameLoopInterval = setInterval(function(){
 			// no host question yet, wait please
 		}
 		else{
-			if(playerIsAnswering){
-				if(playerAnswer == undefined){
-					// they're still answering
-				}
-				else{
-					io.emit("checkAnswer", {"answer": playerAnswer})
-				}
-			}
-			else{
+			if(!playerIsAnswering){
 				// we need a new player
 				playerIsAnswering = true
 				playerAnswer = undefined
@@ -193,7 +185,7 @@ var gameLoopInterval = setInterval(function(){
 				}
 				else{
 					currentPlayer = selectedPlayer
-					sendMessageBoxMessage(selectedPlayer + " is up to play!")
+					//sendMessageBoxMessage(selectedPlayer + " is up to play!")
 					var cpSocket = getSocketFromPlayerName(selectedPlayer)
 					cpSocket.emit('answerQuestion', {"question": hostQuestion})
 				}
@@ -264,9 +256,15 @@ io.on('connection', (socket) => {
 		}
 		// make sure there was a player before continuing
 		if(!failedToFindPlayer){
-			// check if they were in a round
 			if(inRound && currentPlayer != undefined){
 				if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
+					// okay se we can just pick a new person
+					playerIsAnswering = false
+					// thats it
+				}
+			}
+			if(inRound && host != undefined){
+				if(host.toLowerCase() == plrwholeft.toLowerCase()){
 					// yep so lets fix stuff
 					EndPlayerTurn(plrwholeft)
 					delete playerswhovehadturn[plrwholeft]
@@ -479,6 +477,7 @@ io.on('connection', (socket) => {
 				if(playerIsAnswering){
 					// check passed
 					playerAnswer = answer
+					io.emit("checkAnswer", {"answer": playerAnswer})
 				}
 			}
 			else{
