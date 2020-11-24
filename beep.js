@@ -28,6 +28,18 @@ var playerIsAnswering = false
 var playerAnswer
 var playerswhovehadturn = []
 var answersCorrect = 0
+var numbersRight = {
+	"1": false,
+	"2": false,
+	"3": false,
+	"4": false,
+	"5": false,
+	"6": false,
+	"7": false,
+	"8": false,
+	"9": false,
+	"10": false
+}
 
 // socket stuff
 var playerswithsocket = []
@@ -119,6 +131,7 @@ function PickNewPlayer(){
 		return undefined
 	}
 	var randomElement = filtered[Math.floor(Math.random() * filtered.length)]
+	playerswhovehadturn.push(randomElement)
 	return randomElement
 }
 
@@ -234,6 +247,18 @@ function EndRound(){
 	playerAnswer = undefined
 	playerswhovehadturn = []
 	answersCorrect = 0
+	numbersRight = {
+		"1": false,
+		"2": false,
+		"3": false,
+		"4": false,
+		"5": false,
+		"6": false,
+		"7": false,
+		"8": false,
+		"9": false,
+		"10": false
+	}
 	io.emit("endround")
 	sendServerMessage("Timeout for 30 Seconds")
 	setTimeout(function(){
@@ -423,7 +448,6 @@ io.on('connection', (socket) => {
 		if(isHostAnswer){
 			// checks time!
 			// check if player is the host
-			console.log(userSubmitted.toLowerCase() + " <HFS|HFgpnfs> " + host.toLowerCase())
 			if(userSubmitted.toLowerCase() == host.toLowerCase()){
 				// okay the host sent this
 				// make sure the question hasn't already been submitted
@@ -439,21 +463,30 @@ io.on('connection', (socket) => {
 						// the answer is wrong LMAOOOO YOU SUCK AT TENABLE
 						io.emit('answerSubmitted', {"isRight": "no", "answer": answer})
 						setTimeout(function() {
-							EndPlayerTurn()
-							playerIsAnswering = false
+							console.log(currentPlayer + " needs their turn ended")
+							EndPlayerTurn(currentPlayer)
 						}, 10000);
 					}
 					else{
 						// the answer is right, good job
+						// BUT WAIT, HAS THE NUMBER BEEN SUBMITTED????
+						// (are they using fake sockets)
+						for(var i = 0; i < numbersRight.length; i++){
+							if(i[answer] == true){
+								// stupid cheater
+								if(kickPlayersOnDetectedCheat){
+									kickPlayer(socket, "Server Detected Cheats.")
+								}
+							}
+						}
+						// if u make it past this point then they're not a cheater
+						// lets set the number value to true
+						numbersRight[answer] = true
 						io.emit('answerSubmitted', {"isRight": "yes", "answer": answer})
 						answersCorrect++
 						setTimeout(function(){
 							if(answersCorrect >= 10){
 								EndRound()
-							}
-							else{
-								EndPlayerTurn()
-								playerIsAnswering = false
 							}
 						}, 10000)
 					}
@@ -477,6 +510,7 @@ io.on('connection', (socket) => {
 				if(playerIsAnswering){
 					// check passed
 					playerAnswer = answer
+					io.emit("responseString", {"response": playerAnswer})
 					io.emit("checkAnswer", {"answer": playerAnswer})
 				}
 			}
