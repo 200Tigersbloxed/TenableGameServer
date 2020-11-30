@@ -63,3 +63,13 @@ Configuration for the server
 `users`: (JSONObject) Defines whitelisted users.
 
 `admins`: (JSONObject) Defines admins of the server.
+
+## Common Problems
+
+SyntaxError: Unexpected token {
+You are on an older version of Node, upgrade to Node 10+
+Linux: https://joshtronic.com/2018/05/08/how-to-install-nodejs-10-on-ubuntu-1804-lts/
+
+Cannot find module 'x'
+You are missing a module.
+Run `npm i [name of module]` to fix this issue
