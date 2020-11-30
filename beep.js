@@ -40,6 +40,7 @@ var numbersRight = {
 	"9": false,
 	"10": false
 }
+var theplayerlisttopickfrom = []
 
 // socket stuff
 var playerswithsocket = []
@@ -74,7 +75,7 @@ function sendServerMessage(message){
 	if(latestServerMessage != message){
 		latestServerMessage = message;
 		setTimeout(function(){
-			io.emit("serverMessage", { "message": latestServerMessage})
+			io.emit("serverMessage", { "message": latestServerMessage })
 		}, 500)
 	}
 }
@@ -108,36 +109,42 @@ function CheckForDuplicatePlayer(playername){
 }
 
 function PickNewPlayer(){
-	if(playerswhovehadturn.length == players.length){
-		return false
-	}
-	var theplayerlisttopickfrom = players
+	// This SHOULD be used for picking the host
+
+	// this section should no longer have to be used
+	/*
 	for(var i = 0; i < theplayerlisttopickfrom.length; i++){
 		if(theplayerlisttopickfrom[i] == host){
 			delete theplayerlisttopickfrom[i]
 		}
 	}
-	for(var i = 0; i < playerswhovehadturn.length; i++){
-		delete theplayerlisttopickfrom[i]
-	}
 
-	// filter it for empty things
+	// check if the array is empty
+	if(filtered.length <= 0){
+		return false
+	}
+	*/
+	
+	// filter theplayerlisttopickfrom[] for empty things
 	var filtered = theplayerlisttopickfrom.filter(function (el) {
 		return el != null
 	})
-
-	// check if the array is empty
-	if(filtered.length == 0){
-		return undefined
-	}
+	// pick a person
 	var randomElement = filtered[Math.floor(Math.random() * filtered.length)]
-	playerswhovehadturn.push(randomElement)
+	// now indicate they've had a turn
+	for(var k in filtered){
+		if(filtered[k] == randomElement){
+			delete filtered[k]
+		}
+	}
+	theplayerlisttopickfrom = filtered
+	// then return the player that was picked
 	return randomElement
 }
 
 function EndPlayerTurn(playername){
-	var playersocket = getSocketFromPlayerName(playername)
-	currentPlayer = undefined
+	//var playersocket = getSocketFromPlayerName(playername)
+	//currentPlayer = undefined
 	playerIsAnswering = false
 }
 
@@ -219,8 +226,11 @@ function BeginStartRound(){
 function StartRound(){
 	if(players.length >= minplayers){
 		startingEndRound = false
+		// set the player list to pick from to all the players to initiate PickNewPlayer()
+		theplayerlisttopickfrom = players
 		// pick a host
-		host = players[Math.floor(Math.random() * players.length)]
+		// old method: players[Math.floor(Math.random() * players.length)]
+		host = PickNewPlayer()
 		hostSocket = getSocketFromPlayerName(host)
 		io.emit("startround", {"host": host})
 		inRound = true
@@ -245,7 +255,6 @@ function EndRound(){
 	currentPlayer = undefined
 	playerIsAnswering = false
 	playerAnswer = undefined
-	playerswhovehadturn = []
 	answersCorrect = 0
 	numbersRight = {
 		"1": false,
@@ -260,6 +269,9 @@ function EndRound(){
 		"10": false
 	}
 	io.emit("endround")
+	theplayerlisttopickfrom.length = 0
+	theplayerlisttopickfrom = players
+	console.log(theplayerlisttopickfrom)
 	sendServerMessage("Timeout for 30 Seconds")
 	setTimeout(function(){
 		BeginStartRound()
@@ -279,6 +291,7 @@ io.on('connection', (socket) => {
 		catch{
 			failedToFindPlayer = true
 		}
+		if(plrwholeft == undefined){ failedToFindPlayer = true }
 		// make sure there was a player before continuing
 		if(!failedToFindPlayer){
 			if(inRound && currentPlayer != undefined){
@@ -291,11 +304,27 @@ io.on('connection', (socket) => {
 			if(inRound && host != undefined){
 				if(host.toLowerCase() == plrwholeft.toLowerCase()){
 					// yep so lets fix stuff
-					EndPlayerTurn(plrwholeft)
+					EndPlayerTurn()
 					delete playerswhovehadturn[plrwholeft]
 					// thats it
 				}
 			}
+			// remove them from the list
+			for(var k in theplayerlisttopickfrom){
+				if(theplayerlisttopickfrom[k] == plrwholeft){
+					delete theplayerlisttopickfrom[k]
+				}
+			}
+			// then filter it as to not break anything
+			var filteredTPLTPF = theplayerlisttopickfrom.filter(function (el) {
+				return el != null
+			})
+			theplayerlisttopickfrom = filteredTPLTPF
+			var filteredPWHT = playerswhovehadturn.filter(function (el) {
+				return el != null
+			})
+			playerswhovehadturn = filteredPWHT
+			// continue
 			console.log(plrwholeft + " Left the Server")
 			socket.broadcast.emit("playerleft", {"target": plrwholeft})
 			// now remove the player that just left from the players table and playerswithsocket array
@@ -313,7 +342,7 @@ io.on('connection', (socket) => {
 	
 	socket.on('login', (logindata) => {
 		setTimeout(function(){
-			if(players.length <= maxplayers){
+			if(players.length < maxplayers){
 				if(!inRound){
 					if(!CheckForDuplicatePlayer(logindata.username)){
 						if (!config.whitelist) {
@@ -463,8 +492,7 @@ io.on('connection', (socket) => {
 						// the answer is wrong LMAOOOO YOU SUCK AT TENABLE
 						io.emit('answerSubmitted', {"isRight": "no", "answer": answer})
 						setTimeout(function() {
-							console.log(currentPlayer + " needs their turn ended")
-							EndPlayerTurn(currentPlayer)
+							EndPlayerTurn()
 						}, 10000);
 					}
 					else{
