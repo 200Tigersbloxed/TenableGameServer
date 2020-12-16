@@ -47,6 +47,8 @@ var playerswithsocket = []
 
 var io = require('socket.io')({
 	transports: ['websocket'],
+	pingInterval: 4000,
+	pingTimeout: 2000,
 });
 
 function getPlayerNameFromSocket(socket){
@@ -279,6 +281,7 @@ function EndRound(){
 }
 
 io.on('connection', (socket) => {
+	console.log("Client attempting to connect...")
 	socket.on('disconnect', () => {
 		// Lets see whos still here
 		previousplayers = players
@@ -340,7 +343,8 @@ io.on('connection', (socket) => {
 		socket.emit('connectiontest', {"result": true})
 	})
 	
-	socket.on('login', (logindata) => {
+	socket.on('login', (ev) => {
+		var logindata = JSON.parse(ev)
 		setTimeout(function(){
 			if(players.length < maxplayers){
 				if(!inRound){
@@ -407,7 +411,8 @@ io.on('connection', (socket) => {
 	})
 
 	// moderation controllers
-	socket.on('warn', (warndata) => {
+	socket.on('warn', (ev) => {
+		var warndata = JSON.parse(ev)
 		var target = warndata.target
 		var reason = warndata.reason
 		var targetsocket = getSocketFromPlayerName(target)
@@ -430,7 +435,8 @@ io.on('connection', (socket) => {
 		}
 	})
 
-	socket.on('kick', (warndata) => {
+	socket.on('kick', (ev) => {
+		var warndata = JSON.parse(ev)
 		var target = warndata.target
 		var reason = warndata.reason
 		var targetsocket = getSocketFromPlayerName(target)
@@ -454,7 +460,8 @@ io.on('connection', (socket) => {
 	})
 	
 	// chat controller
-	socket.on('sendchatmessage', (messagedata) => {
+	socket.on('sendchatmessage', (ev) => {
+		var messagedata = JSON.parse(ev)
 		// when a client sends a message
 		var sender = messagedata.username
 		var message = messagedata.msg
@@ -464,7 +471,8 @@ io.on('connection', (socket) => {
 	})
 
 	// answer controller
-	socket.on('answerSubmitted', (messagedata) => {
+	socket.on('answerSubmitted', (ev) => {
+		var messagedata = JSON.parse(ev)
 		// an answer was submitted
 		var isHostAnswerString = messagedata.isHostAnswer
 		var answer = messagedata.answer
