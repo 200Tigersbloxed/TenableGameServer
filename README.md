@@ -4,6 +4,7 @@ NodeJS Server for the Tenable Game
 ## Server Setup
 Cool setup time
 This should work with anything that supports NodeJS, but has been verified to work on Windows 10
+IMPORTANT: When installing socket.io, be sure you install socket.io@2.0.2 (v2.0.2), otherwise the client may not be able to connect to the server.
 
 ### Step 0
 Setting up
@@ -32,7 +33,7 @@ Windows: Run any batch file named Dependency[number].bat
 
 Linux: Run these command(s) in the same directory as the .js file.
 `npm install fs`
-`npm install socket.io`
+`npm install socket.io@2.0.2`
 `npm install timers`
 
 ### Step 3
