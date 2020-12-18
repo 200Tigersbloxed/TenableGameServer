@@ -141,6 +141,9 @@ function PickNewPlayer(){
 	}
 	theplayerlisttopickfrom = filtered
 	// then return the player that was picked
+	if(randomElement == getPlayerNameFromSocket(hostSocket)){
+		return false
+	}
 	return randomElement
 }
 
@@ -202,14 +205,19 @@ var gameLoopInterval = setInterval(function(){
 				playerIsAnswering = true
 				playerAnswer = undefined
 				var selectedPlayer = PickNewPlayer()
-				if(selectedPlayer == false || selectedPlayer == undefined){
+				if(selectedPlayer == undefined){
 					EndRound()
+				}
+				else if(selectedPlayer == false){
+					// try again
+					selectedPlayer = PickNewPlayer()
 				}
 				else{
 					currentPlayer = selectedPlayer
-					//sendMessageBoxMessage(selectedPlayer + " is up to play!")
+					sendMessageBoxMessage(selectedPlayer + " is up to play!")
 					var cpSocket = getSocketFromPlayerName(selectedPlayer)
 					cpSocket.emit('answerQuestion', {"question": hostQuestion})
+					playerIsAnswering = true
 				}
 			}
 		}
@@ -236,6 +244,7 @@ function StartRound(){
 		hostSocket = getSocketFromPlayerName(host)
 		io.emit("startround", {"host": host})
 		inRound = true
+		sendMessageBoxMessage(host + " is our host!")
 		// yes this should be the same as the else down there
 		startingRound = false
 		playerIsAnswering = true
@@ -428,10 +437,17 @@ io.on('connection', (socket) => {
 		}
 
 		if(isadmin){
-			targetsocket.emit('warn', { "reason": reason })
+			try{
+				targetsocket.emit('warn', { "reason": reason })
+				console.log(getSocketFromPlayerName(socket) + " warned " + target + " for " + reason + ".")
+			}
+			catch{}
 		}
 		else{
-			socket.emit('failtowarn', { "reason": "Failed to Send Warning: You're not an Admin!" })
+			try{
+				socket.emit('failtowarn', { "reason": "Failed to Send Warning: You're not an Admin!" })
+			}
+			catch{}
 		}
 	})
 
@@ -452,10 +468,16 @@ io.on('connection', (socket) => {
 		}
 
 		if(isadmin){
-			kickPlayer(targetsocket, reason)
+			try{
+				kickPlayer(targetsocket, reason)
+			}
+			catch{}
 		}
 		else{
-			socket.emit('failtokick', { "reason": "Failed to Kick User: You're not an Admin!" })
+			try{
+				socket.emit('failtokick', { "reason": "Failed to Kick User: You're not an Admin!" })
+			}
+			catch{}
 		}
 	})
 	
@@ -523,6 +545,10 @@ io.on('connection', (socket) => {
 						setTimeout(function(){
 							if(answersCorrect >= 10){
 								EndRound()
+							}
+							else{
+								var cpSocket = getSocketFromPlayerName(selectedPlayer)
+								cpSocket.emit('answerQuestion', {"question": hostQuestion})
 							}
 						}, 10000)
 					}
