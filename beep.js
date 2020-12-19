@@ -547,7 +547,7 @@ io.on('connection', (socket) => {
 								EndRound()
 							}
 							else{
-								var cpSocket = getSocketFromPlayerName(selectedPlayer)
+								var cpSocket = getSocketFromPlayerName(currentPlayer)
 								cpSocket.emit('answerQuestion', {"question": hostQuestion})
 							}
 						}, 10000)
