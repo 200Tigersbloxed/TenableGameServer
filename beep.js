@@ -41,6 +41,7 @@ var numbersRight = {
 	"10": false
 }
 var theplayerlisttopickfrom = []
+var inbetweenAnswer = false
 
 // socket stuff
 var playerswithsocket = []
@@ -215,8 +216,10 @@ var gameLoopInterval = setInterval(function(){
 				else{
 					currentPlayer = selectedPlayer
 					sendMessageBoxMessage(selectedPlayer + " is up to play!")
-					var cpSocket = getSocketFromPlayerName(selectedPlayer)
-					cpSocket.emit('answerQuestion', {"question": hostQuestion})
+					if(!inbetweenAnswer){
+						var cpSocket = getSocketFromPlayerName(selectedPlayer)
+						cpSocket.emit('answerQuestion', {"question": hostQuestion})
+					}
 					playerIsAnswering = true
 				}
 			}
@@ -267,6 +270,7 @@ function EndRound(){
 	playerIsAnswering = false
 	playerAnswer = undefined
 	answersCorrect = 0
+	inbetweenAnswer = false
 	numbersRight = {
 		"1": false,
 		"2": false,
@@ -518,11 +522,13 @@ io.on('connection', (socket) => {
 				}
 				else{
 					// it's not a question its a response answer
+					inbetweenAnswer = true
 					if(answer == "wrong"){
 						// the answer is wrong LMAOOOO YOU SUCK AT TENABLE
 						io.emit('answerSubmitted', {"isRight": "no", "answer": answer})
 						setTimeout(function() {
 							EndPlayerTurn()
+							inbetweenAnswer = false
 						}, 10000);
 					}
 					else{
@@ -549,6 +555,7 @@ io.on('connection', (socket) => {
 							else{
 								var cpSocket = getSocketFromPlayerName(currentPlayer)
 								cpSocket.emit('answerQuestion', {"question": hostQuestion})
+								inbetweenAnswer = false
 							}
 						}, 10000)
 					}
