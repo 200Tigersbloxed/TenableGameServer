@@ -554,7 +554,7 @@ io.on('connection', (socket) => {
 							}
 							else{
 								var cpSocket = getSocketFromPlayerName(currentPlayer)
-								if(cpSocket != null){
+								if(cpSocket != null && inRound == true){
 									cpSocket.emit('answerQuestion', {"question": hostQuestion})
 								}
 								else{
