@@ -554,7 +554,12 @@ io.on('connection', (socket) => {
 							}
 							else{
 								var cpSocket = getSocketFromPlayerName(currentPlayer)
-								cpSocket.emit('answerQuestion', {"question": hostQuestion})
+								if(cpSocket != null){
+									cpSocket.emit('answerQuestion', {"question": hostQuestion})
+								}
+								else{
+									playerIsAnswering = false
+								}
 								inbetweenAnswer = false
 							}
 						}, 10000)
