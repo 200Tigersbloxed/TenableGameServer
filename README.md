@@ -3,7 +3,7 @@ NodeJS Server for the Tenable Game
 
 ## Server Setup
 Cool setup time
-This should work with anything that supports NodeJS, but has been verified to work on Windows 10
+This should work with anything that supports NodeJS, but has been verified to work on Ubuntu 18.04
 IMPORTANT: When installing socket.io, be sure you install socket.io@2.0.2 (v2.0.2), otherwise the client may not be able to connect to the server.
 
 ### Step 0
@@ -20,18 +20,12 @@ Download TenableGameServer
 
 Navigate to the [Releases Page](https://github.com/200Tigersbloxed/TenableGameServer/releases)
 
-Windows:
-Download the Windows.zip from the latest release. Extract the ZIP into any directory.
-
-Linux:
-Download the Linux.zip from the latest release. Extract the ZIP into any directory.
+Download the latest release
 
 ### Step 2
 Installing Tenable Game Dependencies
 
-Windows: Run any batch file named Dependency[number].bat
-
-Linux: Run these command(s) in the same directory as the .js file.
+Run these command(s) in the same directory as the .js file.
 `npm install fs`
 `npm install socket.io@2.0.2`
 `npm install timers`
@@ -39,9 +33,7 @@ Linux: Run these command(s) in the same directory as the .js file.
 ### Step 3
 Start the server
 
-Windows: Run start.bat
-
-Linux: While in the same directory as the .js file, run this command
+While in the same directory as the .js file, run this command
 `node [name of .js file].js`
 
 ## Config
@@ -68,9 +60,14 @@ Configuration for the server
 ## Common Problems
 
 SyntaxError: Unexpected token {
+
 You are on an older version of Node, upgrade to Node 10+
+
 Linux: https://joshtronic.com/2018/05/08/how-to-install-nodejs-10-on-ubuntu-1804-lts/
 
+
 Cannot find module 'x'
+
 You are missing a module.
+
 Run `npm i [name of module]` to fix this issue
