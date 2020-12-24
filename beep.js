@@ -310,18 +310,14 @@ io.on('connection', (socket) => {
 		if(plrwholeft == undefined){ failedToFindPlayer = true }
 		// make sure there was a player before continuing
 		if(!failedToFindPlayer){
-			if(inRound && currentPlayer != undefined){
-				if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
-					// okay se we can just pick a new person
-					playerIsAnswering = false
+			if(inRound){
+				if(host.toLowerCase() == plrwholeft.toLowerCase()){
+					EndRound()
 					// thats it
 				}
-			}
-			if(inRound && host != undefined){
-				if(host.toLowerCase() == plrwholeft.toLowerCase()){
-					// yep so lets fix stuff
+				if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
+					// okay so we can just pick a new person
 					EndPlayerTurn()
-					delete playerswhovehadturn[plrwholeft]
 					// thats it
 				}
 			}
