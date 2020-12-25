@@ -113,21 +113,6 @@ function CheckForDuplicatePlayer(playername){
 
 function PickNewPlayer(){
 	// This SHOULD be used for picking the host
-
-	// this section should no longer have to be used
-	/*
-	for(var i = 0; i < theplayerlisttopickfrom.length; i++){
-		if(theplayerlisttopickfrom[i] == host){
-			delete theplayerlisttopickfrom[i]
-		}
-	}
-
-	// check if the array is empty
-	if(filtered.length <= 0){
-		return false
-	}
-	*/
-	
 	// filter theplayerlisttopickfrom[] for empty things
 	var filtered = theplayerlisttopickfrom.filter(function (el) {
 		return el != null
@@ -286,7 +271,6 @@ function EndRound(){
 	io.emit("endround")
 	theplayerlisttopickfrom.length = 0
 	theplayerlisttopickfrom = players
-	console.log(theplayerlisttopickfrom)
 	sendServerMessage("Timeout for 30 Seconds")
 	setTimeout(function(){
 		BeginStartRound()
@@ -470,6 +454,7 @@ io.on('connection', (socket) => {
 		if(isadmin){
 			try{
 				kickPlayer(targetsocket, reason)
+				console.log(getSocketFromPlayerName(socket) + " kicked " + target + " for " + reason + ".")
 			}
 			catch{}
 		}
