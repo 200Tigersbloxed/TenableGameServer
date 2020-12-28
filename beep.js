@@ -295,14 +295,41 @@ io.on('connection', (socket) => {
 		// make sure there was a player before continuing
 		if(!failedToFindPlayer){
 			if(inRound){
-				if(host.toLowerCase() == plrwholeft.toLowerCase()){
-					EndRound()
-					// thats it
+				try{
+					if(host.toLowerCase() == plrwholeft.toLowerCase()){
+						EndRound()
+						// thats it
+					}
 				}
-				if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
-					// okay so we can just pick a new person
-					EndPlayerTurn()
-					// thats it
+				catch{
+					try{
+						if(host == null || host == undefined){
+							EndRound()
+						}
+					}
+					catch{
+						// just end the round at this point
+						EndRound()
+					}
+				}
+				
+				try{
+					if(currentPlayer.toLowerCase() == plrwholeft.toLowerCase()){
+						// okay so we can just pick a new person
+						EndPlayerTurn()
+						// thats it
+					}
+				}
+				catch{
+					try{
+						if(currentPlayer == null || currentPlayer == undefined){
+							EndPlayerTurn()
+						}
+					}
+					catch{
+						// just end the round at this point
+						EndRound()
+					}
 				}
 			}
 			// remove them from the list
